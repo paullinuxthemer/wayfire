@@ -330,6 +330,9 @@ class wf::render_manager::impl
 {
   public:
     wf::wl_listener_wrapper on_frame;
+    wf::wl_listener_wrapper on_present;
+    wf::wl_timer repaint_timer;
+    uint64_t refresh_nsec;
 
     output_t *output;
     wf::region_t swap_damage;
@@ -348,7 +351,28 @@ class wf::render_manager::impl
         effects = std::make_unique<effect_hook_manager_t> ();
         postprocessing = std::make_unique<postprocessing_manager_t>(o);
 
-        on_frame.set_callback([&] (void*) { paint(); });
+        on_present.set_callback([&] (void *data) {
+            auto ev = static_cast<wlr_output_event_present*> (data);
+            this->refresh_nsec = ev->refresh;
+        });
+        on_present.connect(&output->handle->events.present);
+
+        on_frame.set_callback([&] (void*) {
+            /*
+             * Leave a bit of time for clients to render, see
+             * https://github.com/swaywm/sway/pull/4588
+             */
+            const uint64_t max_render_time = 7;
+            uint64_t total = this->refresh_nsec / 1000000 - max_render_time;
+            if (total <= 0 || max_render_time <= 0 || this->renderer)
+                total = 0;
+
+            output->handle->frame_pending = true;
+            repaint_timer.set_timeout(total, [=] () {
+                output->handle->frame_pending = false;
+                paint();
+            });
+        });
         on_frame.connect(&output_damage->damage_manager->events.frame);
 
         init_default_streams();
@@ -576,6 +600,14 @@ class wf::render_manager::impl
         if (constant_redraw_counter)
             output_damage->schedule_repaint();
 
+        send_frame_done();
+    }
+
+    /**
+     * Send frame_done to clients.
+     */
+    void send_frame_done()
+    {
         /* TODO: do this only if the view isn't fully occluded by another */
         std::vector<wayfire_view> visible_views;
         if (renderer)
