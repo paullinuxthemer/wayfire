@@ -35,6 +35,7 @@ extern "C"
     struct wlr_relative_pointer_manager_v1;
     struct wlr_pointer_constraints_v1;
     struct wlr_tablet_manager_v2;
+    struct wlr_presentation;
 
 #include <wayland-server.h>
 }
@@ -100,6 +101,7 @@ class compositor_core_t : public wf::object_base_t
         wlr_relative_pointer_manager_v1 *relative_pointer;
         wlr_pointer_constraints_v1 *pointer_constraints;
         wlr_tablet_manager_v2 *tablet_v2;
+        wlr_presentation *presentation;
     } protocols;
 
     std::string to_string() const { return "wayfire-core"; }

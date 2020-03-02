@@ -20,6 +20,7 @@ extern "C"
 #include <wlr/render/wlr_renderer.h>
 #undef static
 #include <wlr/types/wlr_output_damage.h>
+#include <wlr/types/wlr_presentation_time.h>
 #include <wlr/util/region.h>
 }
 
@@ -892,17 +893,39 @@ class wf::render_manager::impl
 
         for (auto& ds : wf::reverse(repaint.to_render))
         {
+            wlr_surface *sampled_surf = nullptr;
+
             if (ds->view)
             {
                 repaint.fb.geometry.x = ds->pos.x;
                 repaint.fb.geometry.y = ds->pos.y;
                 ds->view->render_transformed(repaint.fb, ds->damage);
+                sampled_surf = ds->view->get_wlr_surface();
+                for (auto& child : ds->view->enumerate_surfaces({0, 0}))
+                {
+                    if (child.surface->get_wlr_surface() != nullptr)
+                    {
+                        wlr_presentation_surface_sampled_on_output(
+                            wf::get_core_impl().protocols.presentation,
+                            child.surface->get_wlr_surface(),
+                            output->handle);
+                    }
+                }
             }
             else
             {
                 repaint.fb.geometry = fb_geometry;
                 ds->surface->simple_render(repaint.fb,
                     ds->pos.x, ds->pos.y, ds->damage);
+                sampled_surf = ds->surface->get_wlr_surface();
+            }
+
+            if (sampled_surf != nullptr)
+            {
+                wlr_presentation_surface_sampled_on_output(
+                    wf::get_core_impl().protocols.presentation,
+                    sampled_surf,
+                    output->handle);
             }
         }
     }

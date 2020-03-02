@@ -20,6 +20,7 @@ extern "C"
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_tablet_v2.h>
+#include <wlr/types/wlr_presentation_time.h>
 
 #define static
 #include <wlr/render/wlr_renderer.h>
@@ -250,6 +251,8 @@ void wf::compositor_core_impl_t::init()
     });
     pointer_constraint_added.connect(
         &protocols.pointer_constraints->events.new_constraint);
+
+    protocols.presentation = wlr_presentation_create(display, backend);
 
     wf_shell = wayfire_shell_create(display);
     gtk_shell = wf_gtk_shell_create(display);
