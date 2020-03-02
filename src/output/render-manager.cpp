@@ -342,6 +342,7 @@ class wf::render_manager::impl
     std::unique_ptr<postprocessing_manager_t> postprocessing;
 
     wf::option_wrapper_t<wf::color_t> background_color_opt;
+    wf::option_wrapper_t<int> max_render_time_opt;
 
     impl(output_t *o)
         : output(o)
@@ -358,14 +359,14 @@ class wf::render_manager::impl
         });
         on_present.connect(&output->handle->events.present);
 
+        max_render_time_opt.load_option("core/max_render_time");
         on_frame.set_callback([&] (void*) {
             /*
              * Leave a bit of time for clients to render, see
              * https://github.com/swaywm/sway/pull/4588
              */
-            const uint64_t max_render_time = 7;
-            uint64_t total = this->refresh_nsec / 1000000 - max_render_time;
-            if (total <= 0 || max_render_time <= 0 || this->renderer)
+            uint64_t total = this->refresh_nsec / 1000000 - max_render_time_opt;
+            if (total <= 0 || max_render_time_opt <= 0 || this->renderer)
                 total = 0;
 
             // We cannot really wait less than 1ms, render right away in that case
