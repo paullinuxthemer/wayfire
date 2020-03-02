@@ -538,7 +538,9 @@ class wf::render_manager::impl
     {
         /* Part 1: frame setup: query damage, etc. */
         timespec repaint_started;
-        clock_gettime(CLOCK_MONOTONIC, &repaint_started);
+        clockid_t presentation_clock =
+            wlr_backend_get_presentation_clock(wf::get_core_impl().backend);
+        clock_gettime(presentation_clock, &repaint_started);
 
         effects->run_effects(OUTPUT_EFFECT_PRE);
 
@@ -630,7 +632,9 @@ class wf::render_manager::impl
         }
 
         timespec repaint_ended;
-        clock_gettime(CLOCK_MONOTONIC, &repaint_ended);
+        clockid_t presentation_clock =
+            wlr_backend_get_presentation_clock(wf::get_core_impl().backend);
+        clock_gettime(presentation_clock, &repaint_ended);
         for (auto& v : visible_views)
         {
             for (auto& view : v->enumerate_views())
