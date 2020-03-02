@@ -368,11 +368,19 @@ class wf::render_manager::impl
             if (total <= 0 || max_render_time <= 0 || this->renderer)
                 total = 0;
 
-            output->handle->frame_pending = true;
-            repaint_timer.set_timeout(total, [=] () {
-                output->handle->frame_pending = false;
+            // We cannot really wait less than 1ms, render right away in that case
+            if (total < 1)
+            {
                 paint();
-            });
+            }
+            else
+            {
+                output->handle->frame_pending = true;
+                repaint_timer.set_timeout(total, [=] () {
+                    output->handle->frame_pending = false;
+                    paint();
+                });
+            }
         });
         on_frame.connect(&output_damage->damage_manager->events.frame);
 
