@@ -36,6 +36,8 @@ class wayfire_place_window : public wf::plugin_interface_t
             std::string mode = placement_mode;
             if (mode == "cascade")
                 cascade(view, workarea);
+            else if (mode == "maximize")
+                maximize(view, workarea);
             else if (mode == "random")
                 random(view, workarea);
             else
@@ -102,6 +104,11 @@ class wayfire_place_window : public wf::plugin_interface_t
         window.x = workarea.x + (workarea.width / 2) - (window.width / 2);
         window.y = workarea.y + (workarea.height / 2) - (window.height / 2);
         view->move(window.x, window.y);
+    }
+
+    void maximize(wayfire_view &view, wf::geometry_t workarea)
+    {
+        view->tile_request(wf::TILED_EDGES_ALL);
     }
 
     void fini() override
