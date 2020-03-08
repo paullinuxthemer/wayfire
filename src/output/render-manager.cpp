@@ -333,7 +333,7 @@ class wf::render_manager::impl
     wf::wl_listener_wrapper on_frame;
     wf::wl_listener_wrapper on_present;
     wf::wl_timer repaint_timer;
-    uint64_t refresh_nsec;
+    int64_t refresh_nsec;
 
     output_t *output;
     wf::region_t swap_damage;
@@ -365,7 +365,7 @@ class wf::render_manager::impl
              * Leave a bit of time for clients to render, see
              * https://github.com/swaywm/sway/pull/4588
              */
-            uint64_t total = this->refresh_nsec / 1000000 - max_render_time_opt;
+            int64_t total = this->refresh_nsec / 1000000 - max_render_time_opt;
             if (total <= 0 || max_render_time_opt <= 0 || this->renderer)
                 total = 0;
 
