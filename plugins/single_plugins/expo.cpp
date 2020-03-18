@@ -215,7 +215,7 @@ class wayfire_expo : public wf::plugin_interface_t
         calculate_zoom(true);
 
         output->render->set_renderer(renderer);
-        output->render->set_redraw_always();
+        output->render->schedule_redraw();
 
         for (size_t i = 0; i < keyboard_select_cbs.size(); i++)
         {
@@ -229,6 +229,7 @@ class wayfire_expo : public wf::plugin_interface_t
     {
         end_move(false);
         animation.start();
+        output->render->schedule_redraw();
         output->workspace->set_workspace({target_vx, target_vy});
         calculate_zoom(false);
 
@@ -502,9 +503,16 @@ class wayfire_expo : public wf::plugin_interface_t
         GL_CALL(glUseProgram(0));
         OpenGL::render_end();
 
-        if (!animation.running() && !state.zoom_in)
+        if (animation.running())
+        {
+            output->render->schedule_redraw();
+        }
+        else if (!state.zoom_in)
+        {
             finalize_and_exit();
+        }
     }
+
     void calculate_zoom(bool zoom_in)
     {
         auto wsize = output->workspace->get_workspace_grid_size();
@@ -552,7 +560,6 @@ class wayfire_expo : public wf::plugin_interface_t
         }
 
         output->render->set_renderer(nullptr);
-        output->render->set_redraw_always(false);
     }
 
     void fini() override
