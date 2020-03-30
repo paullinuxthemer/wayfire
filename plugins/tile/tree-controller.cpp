@@ -26,25 +26,6 @@ void for_each_view(nonstd::observer_ptr<tree_node_t> root,
         for_each_view(child, callback);
 }
 
-class refocus_idle_custom_data_t : public wf::custom_data_t
-{
-    wf::wl_idle_call idle;
-  public:
-    refocus_idle_custom_data_t(wf::output_t *output, wayfire_view view)
-    {
-        idle.run_once([=] () {
-            output->focus_view(view);
-            output->erase_data<refocus_idle_custom_data_t>();
-        });
-    }
-};
-
-static void idle_focus(wf::output_t *output, wayfire_view view)
-{
-    output->store_data(std::make_unique<refocus_idle_custom_data_t> (
-            output, view));
-}
-
 void restack_output_workspace(wf::output_t *output, wf::point_t workspace)
 {
     auto views = output->workspace->get_views_on_workspace(workspace,
@@ -97,7 +78,7 @@ void restack_output_workspace(wf::output_t *output, wf::point_t workspace)
      * unfullscreened */
     if (fullscreen_view)
     {
-        idle_focus(output, fullscreen_view);
+        output->focus_view(fullscreen_view);
         return;
     }
 
@@ -118,11 +99,7 @@ void restack_output_workspace(wf::output_t *output, wf::point_t workspace)
 
     need_refocus &= (tiled_index == 0);
     if (need_refocus)
-    {
-        /* Refocus the top view on the next idle time, we do not want to
-         * recursive indefinitely */
-        idle_focus(output, tiled_views[0]);
-    }
+        output->focus_view(tiled_views[0]);
 }
 
 /**

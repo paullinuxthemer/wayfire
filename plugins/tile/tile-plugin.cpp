@@ -274,8 +274,12 @@ class tile_plugin_t : public wf::plugin_interface_t
             });
         }
 
+        /* Since restacking the output workspace can change the focus, we do
+         * not want to go in an infinite loop */
+        output->disconnect_signal("focus-view", &on_focus_changed);
         tile::restack_output_workspace(output,
             output->workspace->get_current_workspace());
+        output->connect_signal("focus-view", &on_focus_changed);
     };
 
     void change_view_workspace(wayfire_view view, wf::point_t vp = {-1, -1})
