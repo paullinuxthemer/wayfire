@@ -473,8 +473,13 @@ namespace wf
             if (!this->output)
                 return;
 
-            LOGE("disable output: ", output->handle->name);
+            LOGE("disabling output: ", output->handle->name);
+
             auto wo = output.get();
+            output_removed_signal data;
+            data.output = wo;
+            wo->emit_signal("pre-remove", &data);
+            get_core().output_layout->emit_signal("output-pre-remove", &data);
 
             if (get_core().get_active_output() == wo && !shutdown)
             {
@@ -488,9 +493,6 @@ namespace wf
              * going to shut down the compositor */
             transfer_views(wo,
                 shutdown ? nullptr : get_core().get_active_output());
-
-            output_removed_signal data;
-            data.output = wo;
             get_core().output_layout->emit_signal("output-removed", &data);
             this->output = nullptr;
         }
