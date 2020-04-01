@@ -235,7 +235,7 @@ namespace wf
         wlr_output *handle;
         output_state_t current_state;
 
-        std::unique_ptr<wf::output_t> output;
+        std::unique_ptr<wf::output_impl_t> output;
         wl_listener_wrapper on_destroy, on_mode;
         std::shared_ptr<wf::config::option_base_t>
             mode_opt, position_opt, scale_opt, transform_opt;
@@ -469,6 +469,15 @@ namespace wf
                 get_core().get_active_output()->handle : nullptr;
             if (!focused || wlr_output_is_noop(focused))
                 get_core().focus_output(wo);
+
+            /*
+             * At this point, this->output is a valid output and is part of the
+             * get_outputs() list.
+             *
+             * We have also have updated the focused output. So, at this point
+             * all plugin-relevant structures have been updated.
+             */
+            this->output->start_plugins();
 
             output_added_signal data;
             data.output = wo;

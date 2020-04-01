@@ -41,6 +41,11 @@ class output_impl_t : public output_t
 
   public:
     output_impl_t(wlr_output *output);
+    /**
+     * Start all the plugins on this output.
+     */
+    void start_plugins();
+
     virtual ~output_impl_t();
     wayfire_view active_view;
 

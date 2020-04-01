@@ -31,13 +31,17 @@ wf::output_t::output_t(wlr_output *handle)
 wf::output_impl_t::output_impl_t(wlr_output *handle)
     : output_t(handle)
 {
-    plugin = std::make_unique<plugin_manager> (this);
     view_disappeared_cb = [=] (wf::signal_data_t *data) {
         output_t::refocus(get_signaled_view(data));
     };
 
     connect_signal("view-disappeared", &view_disappeared_cb);
     connect_signal("detach-view", &view_disappeared_cb);
+}
+
+void wf::output_impl_t::start_plugins()
+{
+    plugin = std::make_unique<plugin_manager> (this);
 }
 
 std::string wf::output_t::to_string() const
