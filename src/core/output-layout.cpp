@@ -182,6 +182,13 @@ namespace wf
 
                 if (view->fullscreen)
                     view->fullscreen_request(to, true);
+
+                if (!view->fullscreen && !view->tiled_edges && view->is_mapped())
+                {
+                    auto geometry = wf::clamp(view->get_wm_geometry(),
+                        to->workspace->get_workarea());
+                    view->set_geometry(geometry);
+                }
             }
         }
 
