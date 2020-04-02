@@ -1,11 +1,11 @@
-#ifndef VIEW_CHANGE_VIEWPORT_CPP
-#define VIEW_CHANGE_VIEWPORT_CPP
+#pragma once
 
 #include <wayfire/signal-definitions.hpp>
 
+/**
+ * Each plugin which changes the view's workspace should emit this signal.
+ */
 struct view_change_viewport_signal : public _view_signal
 {
     wf::point_t from, to;
 };
-
-#endif /* end of include guard: VIEW_CHANGE_VIEWPORT_CPP */

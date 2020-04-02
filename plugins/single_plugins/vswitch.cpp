@@ -6,12 +6,12 @@
 #include <wayfire/view-transform.hpp>
 #include <wayfire/render-manager.hpp>
 #include <wayfire/workspace-manager.hpp>
+#include <wayfire/plugins/common/view-change-viewport-signal.hpp>
 
 #include <queue>
 #include <linux/input.h>
 #include <utility>
 #include <set>
-#include "view-change-viewport-signal.hpp"
 #include "../wobbly/wobbly-signal.hpp"
 #include <wayfire/util/duration.hpp>
 

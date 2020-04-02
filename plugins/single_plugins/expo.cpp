@@ -9,10 +9,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <wayfire/util/duration.hpp>
+#include <wayfire/plugins/common/view-change-viewport-signal.hpp>
 
 /* TODO: this file should be included in some header maybe(plugin.hpp) */
 #include <linux/input-event-codes.h>
-#include "view-change-viewport-signal.hpp"
 #include "../wobbly/wobbly-signal.hpp"
 #include "move-snap-helper.hpp"
 
