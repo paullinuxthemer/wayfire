@@ -24,6 +24,17 @@ class tile_workspace_implementation_t : public wf::workspace_implementation_t
     }
 };
 
+/**
+ * When a view is moved from one output to the other, we want to keep its tiled
+ * status. To achieve this, we do the following:
+ *
+ * 1. In view-move-to-output handler, we set view_auto_tile_t custom data.
+ * 2. In detach handler, we just remove the view as usual.
+ * 3. We now know we will receive attach as next event.
+ *    Check for view_auto_tile_t, and tile the view again.
+ */
+class view_auto_tile_t : public wf::custom_data_t { };
+
 class tile_plugin_t : public wf::plugin_interface_t
 {
   private:
@@ -198,7 +209,7 @@ class tile_plugin_t : public wf::plugin_interface_t
     signal_callback_t on_view_attached = [=] (signal_data_t *data)
     {
         auto view = get_signaled_view(data);
-        if (tile_window_by_default(view))
+        if (view->has_data<view_auto_tile_t>() || tile_window_by_default(view))
             attach_view(view);
     };
 
@@ -206,6 +217,14 @@ class tile_plugin_t : public wf::plugin_interface_t
     {
         stop_controller(true);
     };
+
+    signal_connection_t on_view_move_to_output = {[=] (signal_data_t *data)
+    {
+        auto ev = static_cast<wf::view_move_to_output_signal*> (data);
+        auto node = wf::tile::view_node_t::get_node(ev->view);
+        if (ev->new_output == this->output && node)
+            ev->view->store_data(std::make_unique<wf::view_auto_tile_t>());
+    }};
 
     /** Remove the given view from its tiling container */
     void detach_view(nonstd::observer_ptr<tile::view_node_t> view)
@@ -452,6 +471,7 @@ class tile_plugin_t : public wf::plugin_interface_t
         output->connect_signal("focus-view", &on_focus_changed);
         output->connect_signal("view-change-viewport", &on_view_change_viewport);
         output->connect_signal("view-minimize-request", &on_view_minimized);
+        wf::get_core().connect_signal("view-move-to-output", &on_view_move_to_output);
 
         tile_by_default_matcher = wf::matcher::get_matcher(tile_by_default);
         setup_callbacks();
