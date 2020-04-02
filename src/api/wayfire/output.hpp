@@ -55,7 +55,7 @@ class output_t : public wf::object_base_t
      * 3860x2160, scale 2 and transform 90, then get_screen_size will report
      * that it has logical resolution of 1080x1920
      */
-    wf::dimensions_t get_screen_size() const;
+    virtual wf::dimensions_t get_screen_size() const = 0;
 
     /**
      * Same as get_screen_size() but returns a wf::geometry_t with x,y = 0
@@ -193,7 +193,7 @@ class output_t : public wf::object_base_t
     virtual ~output_t();
   protected:
     /* outputs are instantiated internally by core */
-    output_t(wlr_output *handle);
+    output_t();
 };
 }
 #endif /* end of include guard: OUTPUT_HPP */

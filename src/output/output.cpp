@@ -21,16 +21,15 @@ extern "C"
 #include <algorithm>
 #include <assert.h>
 
-wf::output_t::output_t(wlr_output *handle)
+wf::output_t::output_t() = default;
+
+wf::output_impl_t::output_impl_t(wlr_output *handle, const wf::dimensions_t& effective_size)
 {
+    this->set_effective_size(effective_size);
     this->handle = handle;
     workspace = std::make_unique<workspace_manager> (this);
     render = std::make_unique<render_manager> (this);
-}
 
-wf::output_impl_t::output_impl_t(wlr_output *handle)
-    : output_t(handle)
-{
     view_disappeared_cb = [=] (wf::signal_data_t *data) {
         output_t::refocus(get_signaled_view(data));
     };
@@ -98,20 +97,22 @@ wf::output_t::~output_t()
 }
 wf::output_impl_t::~output_impl_t() { }
 
-wf::dimensions_t wf::output_t::get_screen_size() const
+void wf::output_impl_t::set_effective_size(const wf::dimensions_t& size)
 {
-    int w, h;
-    wlr_output_effective_resolution(handle, &w, &h);
-    return {w, h};
+    this->effective_size = size;
+}
+
+wf::dimensions_t wf::output_impl_t::get_screen_size() const
+{
+    return this->effective_size;
 }
 
 wf::geometry_t wf::output_t::get_relative_geometry() const
 {
-    wf::geometry_t g;
-    g.x = g.y = 0;
-    wlr_output_effective_resolution(handle, &g.width, &g.height);
-
-    return g;
+    auto size = get_screen_size();
+    return {
+        0, 0, size.width, size.height
+    };
 }
 
 wf::geometry_t wf::output_t::get_layout_geometry() const

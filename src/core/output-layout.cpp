@@ -454,12 +454,16 @@ namespace wf
             return state;
         }
 
-        void ensure_wayfire_output()
+        void ensure_wayfire_output(const wf::dimensions_t& effective_size)
         {
             if (this->output)
+            {
+                this->output->set_effective_size(effective_size);
                 return;
+            }
 
-            this->output = std::make_unique<wf::output_impl_t> (handle);
+            this->output =
+                std::make_unique<wf::output_impl_t> (handle, effective_size);
             auto wo = output.get();
 
             /* Focus the first output, but do not change the focus on subsequently
@@ -494,6 +498,7 @@ namespace wf
             auto wo = output.get();
             output_removed_signal data;
             data.output = wo;
+
             wo->emit_signal("pre-remove", &data);
             get_core().output_layout->emit_signal("output-pre-remove", &data);
 
@@ -733,23 +738,16 @@ namespace wf
             /* Even if output will remain mirrored, we can tear it down and set
              * up again, in case the output to mirror from changed */
             teardown_mirror();
-            if (state.source & OUTPUT_IMAGE_SOURCE_NONE)
+
+            if (state.source == OUTPUT_IMAGE_SOURCE_NONE)
             {
-                /* DPMS or OFF */
+                /* output is OFF */
+                destroy_wayfire_output(is_shutdown);
                 set_enabled(false);
-                if (state.source == OUTPUT_IMAGE_SOURCE_NONE)
-                {
-                    /* OFF */
-                    destroy_wayfire_output(is_shutdown);
-                    return;
-                }
-            }
-            else
-            {
-                /* SELF or MIRROR */
-                set_enabled(true);
+                return;
             }
 
+            set_enabled(!(state.source & OUTPUT_IMAGE_SOURCE_NONE));
             apply_mode(state.mode);
             if (state.source & OUTPUT_IMAGE_SOURCE_SELF)
             {
@@ -761,7 +759,11 @@ namespace wf
 
                 wlr_output_commit(handle);
 
-                ensure_wayfire_output();
+                wf::dimensions_t effective_size;
+                wlr_output_effective_resolution(handle,
+                    &effective_size.width, &effective_size.height);
+                ensure_wayfire_output(effective_size);
+
                 output->render->damage_whole();
                 if (!wlr_output_is_noop(handle))
                     output->emit_signal("output-configuration-changed", nullptr);

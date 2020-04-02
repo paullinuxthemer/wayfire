@@ -39,8 +39,10 @@ class output_impl_t : public output_t
     /** @param flags bitmask of @focus_view_flags_t */
     void focus_view(wayfire_view view, uint32_t flags);
 
+    wf::dimensions_t effective_size;
+
   public:
-    output_impl_t(wlr_output *output);
+    output_impl_t(wlr_output *output, const wf::dimensions_t& effective_size);
     /**
      * Start all the plugins on this output.
      */
@@ -61,6 +63,7 @@ class output_impl_t : public output_t
     wayfire_view get_active_view() const override;
     void focus_view(wayfire_view v, bool raise) override;
     void refocus(wayfire_view skip_view, uint32_t layers) override;
+    wf::dimensions_t get_screen_size() const override;
 
     /**
      * Set the output as inhibited, so that no plugins can be activated
@@ -80,6 +83,10 @@ class output_impl_t : public output_t
      * @return The currently active input grab interface, or nullptr if none
      */
     plugin_grab_interface_t* get_input_grab_interface();
+
+    /** Set the effective resolution of the output */
+    void set_effective_size(const wf::dimensions_t& size);
+
 };
 }
 
