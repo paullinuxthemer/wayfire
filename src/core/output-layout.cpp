@@ -170,12 +170,9 @@ namespace wf
         {
             for (auto& view : views)
             {
-                view->set_output(to);
-                to->workspace->add_view(view, view->minimized ?
-                    wf::LAYER_MINIMIZED : wf::LAYER_WORKSPACE);
+                wf::get_core().move_view_to_output(view, to);
                 to->workspace->move_to_workspace(view,
                     to->workspace->get_current_workspace());
-                to->focus_view(view);
 
                 if (view->tiled_edges)
                     view->tile_request(view->tiled_edges);
