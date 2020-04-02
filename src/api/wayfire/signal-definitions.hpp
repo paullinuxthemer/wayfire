@@ -180,6 +180,20 @@ namespace wf
      * decoration-state-updated-view is emitted on the output of the view.
      */
     using decoration_state_updated_signal = _view_signal;
+
+    /**
+     * view-move-to-output signal is emitted by core just before a view is moved
+     * from one output to another.
+     */
+    struct view_move_to_output_signal : public signal_data_t
+    {
+        /* The view being moved */
+        wayfire_view view;
+        /* The output the view was on */
+        wf::output_t *old_output;
+        /* The output the view is being moved to. */
+        wf::output_t *new_output;
+    };
 }
 
 #endif

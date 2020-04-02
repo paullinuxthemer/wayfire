@@ -37,18 +37,20 @@ extern "C"
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <wayfire/img.hpp>
+#include <wayfire/output.hpp>
 #include <wayfire/util/log.hpp>
+#include <wayfire/output-layout.hpp>
+#include <wayfire/workspace-manager.hpp>
+#include <wayfire/signal-definitions.hpp>
+
 #include "opengl-priv.hpp"
-#include "wayfire/output.hpp"
-#include "wayfire/workspace-manager.hpp"
 #include "seat/input-manager.hpp"
 #include "seat/touch.hpp"
 #include "../view/view-impl.hpp"
 #include "../output/wayfire-shell.hpp"
 #include "../output/output-impl.hpp"
 #include "../output/gtk-shell.hpp"
-#include "wayfire/img.hpp"
-#include "wayfire/output-layout.hpp"
 
 #include "core-impl.hpp"
 
@@ -607,6 +609,12 @@ int wf::compositor_core_impl_t::get_xwayland_display()
 void wf::compositor_core_impl_t::move_view_to_output(wayfire_view v,
     wf::output_t *new_output)
 {
+    wf::view_move_to_output_signal data;
+    data.view = v;
+    data.old_output = v->get_output();
+    data.new_output = new_output;
+    this->emit_signal("view-move-to-output", &data);
+
     assert(new_output);
     v->set_output(new_output);
     new_output->workspace->add_view(v,
