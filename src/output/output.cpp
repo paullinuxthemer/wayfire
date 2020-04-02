@@ -172,17 +172,7 @@ bool wf::output_t::ensure_visible(wayfire_view v)
     int dvx = std::floor(1.0 * dx / g.width);
     int dvy = std::floor(1.0 * dy / g.height);
     auto cws = workspace->get_current_workspace();
-
-    change_viewport_signal data;
-
-    data.carried_out = false;
-    data.old_viewport = cws;
-    data.new_viewport = cws + wf::point_t{dvx, dvy};
-
-    emit_signal("set-workspace-request", &data);
-    if (!data.carried_out)
-        workspace->set_workspace(data.new_viewport);
-
+    workspace->request_workspace(cws + wf::point_t{dvx, dvy});
     return true;
 }
 

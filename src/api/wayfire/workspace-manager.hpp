@@ -163,11 +163,19 @@ class workspace_manager
         bool overwrite = false);
 
     /**
-     * Change the active workspace.
+     * Directly change the active workspace.
      *
-     * @param The new active workspace.
+     * @param ws The new active workspace.
      */
     void set_workspace(wf::point_t ws);
+
+    /**
+     * Switch to the given workspace.
+     * If possible, use a plugin which provides animation.
+     *
+     * @param ws The new active workspace.
+     */
+    void request_workspace(wf::point_t ws);
 
     /**
      * @return The given workspace

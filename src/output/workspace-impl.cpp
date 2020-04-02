@@ -501,6 +501,21 @@ class workspace_manager::impl
         check_autohide_panels();
     }
 
+    void request_workspace(wf::point_t ws)
+    {
+        if (ws == viewport_manager.get_current_workspace())
+            return;
+
+        change_viewport_signal data;
+        data.carried_out = false;
+        data.old_viewport = viewport_manager.get_current_workspace();
+        data.new_viewport = ws;
+        output->emit_signal("set-workspace-request", &data);
+
+        if (!data.carried_out)
+            set_workspace(ws);
+    }
+
     layer_t get_target_layer(wayfire_view view, layer_t current_target)
     {
         /* A view which is fullscreen should go directly to the fullscreen layer
@@ -670,6 +685,7 @@ bool workspace_manager::set_workspace_implementation(std::unique_ptr<workspace_i
 { return pimpl->set_implementation(std::move(impl), overwrite); }
 
 void workspace_manager::set_workspace(wf::point_t ws) { return pimpl->set_workspace(ws); }
+void workspace_manager::request_workspace(wf::point_t ws) { return pimpl->request_workspace(ws); }
 wf::point_t workspace_manager::get_current_workspace() { return pimpl->viewport_manager.get_current_workspace(); }
 wf::dimensions_t workspace_manager::get_workspace_grid_size() { return pimpl->viewport_manager.get_workspace_grid_size(); }
 
