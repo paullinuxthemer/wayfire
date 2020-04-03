@@ -15,6 +15,7 @@
 
 extern "C"
 {
+#include <wlr/config.h>
 #define static
 #include <wlr/backend.h>
 #include <wlr/backend/drm.h>
@@ -299,20 +300,19 @@ namespace wf
         {
             auto& lmanager = wf::get_core().output_layout;
             auto config = lmanager->get_current_configuration();
-            if (config.count(handle) && handle->current_mode)
+            if (config.count(handle) &&
+                config[handle].source == OUTPUT_IMAGE_SOURCE_SELF)
             {
-                if (config[handle].source == OUTPUT_IMAGE_SOURCE_SELF)
-                {
-                    int width = config[handle].mode.width;
-                    int height = config[handle].mode.height;
+                int width = config[handle].mode.width;
+                int height = config[handle].mode.height;
 
-                    if (width != handle->current_mode->width ||
-                        height != handle->current_mode->height)
-                    {
-                        /* mode changed. Apply new configuration. */
-                        config[handle].mode = *handle->current_mode;
-                        lmanager->apply_configuration(config);
-                    }
+                if (width != handle->width || height != handle->height)
+                {
+                    /* mode changed. Apply new configuration. */
+                    config[handle].mode.width = handle->width;
+                    config[handle].mode.height = handle->height;
+                    config[handle].mode.refresh = handle->refresh;
+                    lmanager->apply_configuration(config);
                 }
             }
         }
