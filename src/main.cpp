@@ -202,7 +202,7 @@ static void signal_handler(int signal)
     }
 
     LOGE("Fatal error: ", error);
-    wf::print_trace();
+    wf::print_trace(false);
     std::exit(0);
 }
 

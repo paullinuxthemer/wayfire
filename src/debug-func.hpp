@@ -187,7 +187,7 @@ addr2line_result locate_source_file(const demangling_result& dr)
     };
 }
 
-void wf::print_trace()
+void wf::print_trace(bool fast_mode)
 {
     void* addrlist[MAX_FRAMES];
     int addrlen = backtrace(addrlist, MAX_FRAMES);
@@ -205,7 +205,7 @@ void wf::print_trace()
 
         std::ostringstream line;
         line << '#' << std::left << std::setw(2) << i << " ";
-        if (result.address.size() && result.executable.size() && HAS_ADDR2LINE) {
+        if (HAS_ADDR2LINE && !fast_mode && result.address.size() && result.executable.size()) {
             auto source = locate_source_file(result);
             line << source.function_name << " " << source.function_source;
         } else if (result.function_name.size()) {
