@@ -115,13 +115,13 @@ class wf_gaussian_blur : public wf_blur_base
         program[i].attrib_pointer("position", 2, 0, vertexData);
     }
 
-    void blur(int i, int width, int height)
+    void blur(const wf::region_t& blur_region, int i, int width, int height)
     {
         program[i].use(wf::TEXTURE_TYPE_RGBA);
-        render_iteration(fb[i], fb[!i], width, height);
+        render_iteration(blur_region, fb[i], fb[!i], width, height);
     }
 
-    int blur_fb0(int width, int height) override
+    int blur_fb0(const wf::region_t& blur_region, int width, int height) override
     {
         int i, iterations = iterations_opt;
 
@@ -135,10 +135,10 @@ class wf_gaussian_blur : public wf_blur_base
 
         for (i = 0; i < iterations; i++) {
             /* Blur horizontally */
-            blur(0, width, height);
+            blur(blur_region, 0, width, height);
 
             /* Blur vertically */
-            blur(1, width, height);
+            blur(blur_region, 1, width, height);
         }
 
         /* Reset gl state */

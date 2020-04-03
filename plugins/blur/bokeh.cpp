@@ -73,7 +73,7 @@ class wf_bokeh_blur : public wf_blur_base
         OpenGL::render_end();
     }
 
-    int blur_fb0(int width, int height) override
+    int blur_fb0(const wf::region_t& blur_region, int width, int height) override
     {
         int iterations = iterations_opt;
         float offset = offset_opt;
@@ -94,7 +94,7 @@ class wf_bokeh_blur : public wf_blur_base
 
         program[0].attrib_pointer("position", 2, 0, vertexData);
         GL_CALL(glDisable(GL_BLEND));
-        render_iteration(fb[0], fb[1], width, height);
+        render_iteration(blur_region, fb[0], fb[1], width, height);
 
         /* Reset gl state */
         GL_CALL(glEnable(GL_BLEND));

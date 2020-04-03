@@ -73,8 +73,9 @@ int wf_blur_base::calculate_blur_radius()
     return offset_opt * degrade_opt * iterations_opt;
 }
 
-void wf_blur_base::render_iteration(wf::framebuffer_base_t& in,
-    wf::framebuffer_base_t& out, int width, int height)
+void wf_blur_base::render_iteration(wf::region_t blur_region,
+    wf::framebuffer_base_t& in, wf::framebuffer_base_t& out,
+    int width, int height)
 {
     /* Special case for small regions where we can't really blur, because we
      * simply have too few pixels */
@@ -85,7 +86,11 @@ void wf_blur_base::render_iteration(wf::framebuffer_base_t& in,
     out.bind();
 
     GL_CALL(glBindTexture(GL_TEXTURE_2D, in.tex));
-    GL_CALL(glDrawArrays(GL_TRIANGLE_FAN, 0, 4));
+    for (auto& b : blur_region)
+    {
+        out.scissor(wlr_box_from_pixman_box(b));
+        GL_CALL(glDrawArrays(GL_TRIANGLE_FAN, 0, 4));
+    }
 }
 
 wlr_box wf_blur_base::copy_region(wf::framebuffer_base_t& result,
@@ -128,7 +133,21 @@ void wf_blur_base::pre_render(wf::texture_t src_tex, wlr_box src_box,
     int scaled_width = std::max(1, damage_box.width / degrade);
     int scaled_height = std::max(1, damage_box.height / degrade);
 
-    int r = blur_fb0(scaled_width, scaled_height);
+    /* As an optimization, we create a region that blur can use
+     * to perform minimal rendering required to blur. We start
+     * by translating the input damage region */
+    wf::region_t blur_damage;
+    for (auto b : damage)
+    {
+        blur_damage |= target_fb.framebuffer_box_from_geometry_box(
+            wlr_box_from_pixman_box(b));
+    }
+
+    /* Scale and translate the region */
+    blur_damage += -wf::point_t{damage_box.x, damage_box.y};
+    blur_damage *= 1.0 / degrade;
+
+    int r = blur_fb0(blur_damage, scaled_width, scaled_height);
 
     /* Make sure the result is always fb[1], because that's what is used in render() */
     if (r != 0)

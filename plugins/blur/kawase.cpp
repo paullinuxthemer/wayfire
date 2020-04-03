@@ -75,7 +75,7 @@ class wf_kawase_blur : public wf_blur_base
         OpenGL::render_end();
     }
 
-    int blur_fb0(int width, int height) override
+    int blur_fb0(const wf::region_t& blur_region, int width, int height) override
     {
         int iterations = iterations_opt;
         float offset = offset_opt;
@@ -104,9 +104,11 @@ class wf_kawase_blur : public wf_blur_base
             sampleWidth = width / (1 << i);
             sampleHeight = height / (1 << i);
 
+            auto region = blur_region * (1.0 / (1 << i));
+
             program[0].uniform2f("halfpixel",
                 0.5f / sampleWidth, 0.5f / sampleHeight);
-            render_iteration(fb[i % 2], fb[1 - i % 2], sampleWidth, sampleHeight);
+            render_iteration(region, fb[i % 2], fb[1 - i % 2], sampleWidth, sampleHeight);
         }
 
         program[0].deactivate();
@@ -120,9 +122,11 @@ class wf_kawase_blur : public wf_blur_base
             sampleWidth = width / (1 << i);
             sampleHeight = height / (1 << i);
 
+            auto region = blur_region * (1.0 / (1 << i));
+
             program[1].uniform2f("halfpixel",
                 0.5f / sampleWidth, 0.5f / sampleHeight);
-            render_iteration(fb[1 - i % 2], fb[i % 2], sampleWidth, sampleHeight);
+            render_iteration(region, fb[1 - i % 2], fb[i % 2], sampleWidth, sampleHeight);
         }
 
         /* Reset gl state */
