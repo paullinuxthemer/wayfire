@@ -50,30 +50,15 @@ struct output_damage_t
     }
 
     /**
-     * Damage the given box
-     */
-    void damage(const wlr_box& box)
-    {
-        frame_damage |= box;
-
-        auto sbox = box;
-        if (damage_manager)
-            wlr_output_damage_add_box(damage_manager, &sbox);
-
-        schedule_repaint();
-    }
-
-    /**
      * Damage the given region
      */
     void damage(const wf::region_t& region)
     {
-        frame_damage |= region;
+        /* Wlroots expects damage after scaling */
+        auto scaled_region = region * wo->handle->scale;
+        frame_damage |= scaled_region;
         if (damage_manager)
-        {
-            wlr_output_damage_add(damage_manager,
-                const_cast<wf::region_t&> (region).to_pixman());
-        }
+            wlr_output_damage_add(damage_manager, scaled_region.to_pixman());
 
         schedule_repaint();
     }
@@ -189,10 +174,14 @@ struct output_damage_t
     {
         auto vsize = wo->workspace->get_workspace_grid_size();
         auto vp = wo->workspace->get_current_workspace();
+        auto res = wo->get_screen_size();
 
-        int sw, sh;
-        wlr_output_transformed_resolution(output, &sw, &sh);
-        damage({-vp.x * sw, -vp.y * sh, vsize.width * sw, vsize.height * sh});
+        damage(wf::geometry_t{
+            -vp.x * res.width,
+            -vp.y * res.height,
+            vsize.width * res.width,
+            vsize.height * res.height,
+        });
     }
 
     wf::wl_idle_call idle_damage;

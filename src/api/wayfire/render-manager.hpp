@@ -132,7 +132,7 @@ class render_manager : public wf::signal_provider_t
     /**
      * @return The damaged region on the current output for the current
      * frame. Note that a larger region might actually be repainted due to
-     * double buffering
+     * double buffering.
      */
     wf::region_t get_scheduled_damage();
 
@@ -166,7 +166,7 @@ class render_manager : public wf::signal_provider_t
 
     /**
      * @return A box in output-local coordinates containing the visible part
-     * of the output
+     * of the output.
      */
     wlr_box get_damage_box() const;
 

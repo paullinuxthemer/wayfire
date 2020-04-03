@@ -67,9 +67,7 @@ void wf_drag_icon::damage_surface_box(const wlr_box& box)
             auto local = damage;
             local.x -= output_geometry.x;
             local.y -= output_geometry.y;
-
-            const auto& fb = output->render->get_target_framebuffer();
-            output->render->damage(fb.damage_box_from_geometry_box(local));
+            output->render->damage(local);
         }
     }
 }

@@ -1061,9 +1061,6 @@ void wf::view_damage_raw(wayfire_view view, const wlr_box& box)
     if (!output)
         return;
 
-    auto damage_box = output->render->get_target_framebuffer().
-        damage_box_from_geometry_box(box);
-
     /* shell views are visible in all workspaces. That's why we must apply
      * their damage to all workspaces as well */
     if (view->role == wf::VIEW_ROLE_DESKTOP_ENVIRONMENT)
@@ -1073,8 +1070,8 @@ void wf::view_damage_raw(wayfire_view view, const wlr_box& box)
 
         /* Damage only the visible region of the shell view.
          * This prevents hidden panels from spilling damage onto other workspaces */
-        wlr_box ws_box = output->render->get_damage_box();
-        wlr_box visible_damage = geometry_intersection(damage_box, ws_box);
+        wlr_box ws_box = output->get_relative_geometry();
+        wlr_box visible_damage = geometry_intersection(box, ws_box);
         for (int i = 0; i < wsize.width; i++)
         {
             for (int j = 0; j < wsize.height; j++)
@@ -1086,7 +1083,7 @@ void wf::view_damage_raw(wayfire_view view, const wlr_box& box)
         }
     } else
     {
-        output->render->damage(damage_box);
+        output->render->damage(box);
     }
 
     view->emit_signal("damaged-region", nullptr);

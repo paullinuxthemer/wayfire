@@ -119,7 +119,7 @@ class wayfire_blur : public wf::plugin_interface_t
 
         blur_method_changed = [=] () {
             blur_algorithm = create_blur_from_name(output, method_opt);
-            blur_algorithm->damage_all_workspaces();
+            output->render->damage_whole();
         };
         /* Create initial blur algorithm */
         blur_method_changed();
@@ -216,13 +216,14 @@ class wayfire_blur : public wf::plugin_interface_t
                 padding);
 
             auto damage = output->render->get_scheduled_damage();
+            const auto& fb = output->render->get_target_framebuffer();
             for (const auto& rect : damage)
             {
                 output->render->damage(wlr_box{
-                        rect.x1 - padding,
-                        rect.y1 - padding,
-                        (rect.x2 - rect.x1) + 2 * padding,
-                        (rect.y2 - rect.y1) + 2 * padding
+                        int((rect.x1 - padding) / fb.scale),
+                        int((rect.y1 - padding) / fb.scale),
+                        int(((rect.x2 - rect.x1) + 2 * padding) / fb.scale),
+                        int(((rect.y2 - rect.y1) + 2 * padding) / fb.scale)
                 });
             }
         };

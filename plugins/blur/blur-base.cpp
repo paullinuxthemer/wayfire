@@ -47,7 +47,7 @@ wf_blur_base::wf_blur_base(wf::output_t *output,
     this->degrade_opt.load_option("blur/" + algorithm_name + "_degrade");
     this->iterations_opt.load_option("blur/" + algorithm_name + "_iterations");
 
-    this->options_changed = [=] () { damage_all_workspaces(); };
+    this->options_changed = [=] () { output->render->damage_whole(); };
     this->offset_opt.set_callback(options_changed);
     this->degrade_opt.set_callback(options_changed);
     this->iterations_opt.set_callback(options_changed);
@@ -71,19 +71,6 @@ wf_blur_base::~wf_blur_base()
 int wf_blur_base::calculate_blur_radius()
 {
     return offset_opt * degrade_opt * iterations_opt;
-}
-
-void wf_blur_base::damage_all_workspaces()
-{
-    auto wsize = output->workspace->get_workspace_grid_size();
-    for (int vx = 0; vx < wsize.width; vx++)
-    {
-        for (int vy = 0; vy < wsize.height; vy++)
-        {
-            output->render->damage(
-                output->render->get_ws_box({vx, vy}));
-        }
-    }
 }
 
 void wf_blur_base::render_iteration(wf::framebuffer_base_t& in,
