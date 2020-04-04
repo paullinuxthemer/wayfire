@@ -43,27 +43,10 @@ int decoration_theme_t::get_border_size() const
 void decoration_theme_t::render_background(const wf::framebuffer_t& fb,
     wf::geometry_t rectangle, const wf::geometry_t& scissor, bool active) const
 {
-    /* Prepare matrices */
-    rectangle = fb.damage_box_from_geometry_box(rectangle);
-
-    float projection[9];
-    wlr_matrix_projection(projection,
-        fb.viewport_width, fb.viewport_height,
-        (wl_output_transform)fb.wl_transform);
-
-    float matrix[9];
-    wlr_matrix_project_box(matrix, &rectangle,
-        WL_OUTPUT_TRANSFORM_NORMAL, 0, projection);
-
-    /* Calculate color */
     wf::color_t color = active ? active_color : inactive_color;
-    float color4f[] = {
-        (float)color.r, (float)color.g, (float)color.b, (float)color.a};
-
-    /* Actual rendering */
     OpenGL::render_begin(fb);
-    fb.scissor(scissor);
-    wlr_render_quad_with_matrix(wf::get_core().renderer, color4f, matrix);
+    fb.logic_scissor(scissor);
+    OpenGL::render_rectangle(rectangle, color, fb.get_orthographic_projection());
     OpenGL::render_end();
 }
 

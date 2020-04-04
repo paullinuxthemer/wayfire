@@ -382,12 +382,13 @@ class view_interface_t : public surface_interface_t, public wf::object_base_t
      * Child views like dialogues are considered a part of the view's surface
      * tree, however they are not transformed by the view's transformers.
      *
-     * @param framebuffer the framebuffer to render to.
-     * @param damage the damaged region of the view, in the same (but scaled)
-     *        coordinate system as the framebuffer.
+     * @param framebuffer The framebuffer to render to. Geometry needs to be
+     *   in output-local coordinate system.
+     * @param damage The damaged region of the view, in output-local coordinate
+     *   system.
      *
      * @return true if the render operation was successful, and false if the
-                    view is both unmapped and has no snapshot.
+     *   view is both unmapped and has no snapshot.
      */
     bool render_transformed(const framebuffer_t& framebuffer,
         const region_t& damage);

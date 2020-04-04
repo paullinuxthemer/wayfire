@@ -935,7 +935,7 @@ bool wf::view_interface_t::render_transformed(const wf::framebuffer_t& framebuff
 
         for (const auto& rect : damage)
         {
-            framebuffer.scissor(wlr_box_from_pixman_box(rect));
+            framebuffer.logic_scissor(wlr_box_from_pixman_box(rect));
             OpenGL::render_transformed_texture(previous_texture, src_geometry,
                 {}, matrix);
         }
@@ -945,8 +945,11 @@ bool wf::view_interface_t::render_transformed(const wf::framebuffer_t& framebuff
     {
         /* Regular case, just call the last transformer, but render directly
          * to the target framebuffer */
+        auto transformed_damage = damage +
+            -wf::point_t{framebuffer.geometry.x, framebuffer.geometry.y};
+        transformed_damage *= framebuffer.scale;
         final_transform->transform->render_with_damage(previous_texture, obox,
-            damage, framebuffer);
+            transformed_damage, framebuffer);
     }
 
     return true;
@@ -991,33 +994,18 @@ void wf::view_interface_t::take_snapshot()
     offscreen_buffer.bind();
     for (auto& box : offscreen_buffer.cached_damage)
     {
-        offscreen_buffer.scissor(
-            offscreen_buffer.framebuffer_box_from_geometry_box(
-                wlr_box_from_pixman_box(box)));
+        offscreen_buffer.logic_scissor(wlr_box_from_pixman_box(box));
         OpenGL::clear({0, 0, 0, 0});
     }
 
     OpenGL::render_end();
 
-    offscreen_buffer.cached_damage +=
-        -wf::point_t{buffer_geometry.x, buffer_geometry.y};
-
-    wf::region_t damage_region;
-    for (auto& rect : offscreen_buffer.cached_damage)
-    {
-        auto box = wlr_box_from_pixman_box(rect);
-        damage_region |= offscreen_buffer.damage_box_from_geometry_box(box);
-    }
-
     auto output_geometry = get_output_geometry();
-    int ox = output_geometry.x - buffer_geometry.x;
-    int oy = output_geometry.y - buffer_geometry.y;
-
-    auto children = enumerate_surfaces({ox, oy});
+    auto children = enumerate_surfaces({output_geometry.x, output_geometry.y});
     for (auto& child : wf::reverse(children))
     {
         child.surface->simple_render(offscreen_buffer,
-            child.position.x, child.position.y, damage_region);
+            child.position.x, child.position.y, offscreen_buffer.cached_damage);
     }
 
     offscreen_buffer.cached_damage.clear();

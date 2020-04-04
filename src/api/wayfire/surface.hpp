@@ -162,11 +162,14 @@ class surface_interface_t
     /**
      * Render the surface, without applying any transformations.
      *
-     * @param fb The target framebuffer
-     * @param x The x coordinate of the surface relative to fb
-     * @param y The y coordinate of the surface relative to fb
-     * @param damage The damaged region of the surface. Nothing should be drawn
-     * outside of it.
+     * @param fb The target framebuffer.
+     * @param x The x coordinate of the surface in the same coordinate system
+     *   as the framebuffer's geometry.
+     * @param y The y coordinate of the surface the same coordinate system
+     *   as the framebuffer's geometry.
+     * @param damage The damaged region of the surface, in the same coordinate
+     *   system as the framebuffer's geometry. Nothing should be drawn outside
+     *   of the damaged region.
      */
     virtual void simple_render(const wf::framebuffer_t& fb, int x, int y,
         const wf::region_t& damage) = 0;

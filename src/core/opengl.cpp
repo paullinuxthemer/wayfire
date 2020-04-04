@@ -188,10 +188,7 @@ namespace OpenGL
         const wf::framebuffer_t& framebuffer,
         const wf::geometry_t& geometry, glm::vec4 color, uint32_t bits)
     {
-        wf::geometry_t actual_geometry = geometry;
-        actual_geometry.x += framebuffer.geometry.x;
-        actual_geometry.y += framebuffer.geometry.y;
-        render_transformed_texture(texture, actual_geometry,
+        render_transformed_texture(texture, geometry,
             framebuffer.get_orthographic_projection(), color, bits);
     }
 
@@ -432,6 +429,11 @@ glm::mat4 wf::framebuffer_t::get_orthographic_projection() const
         1.0f * geometry.y);
 
     return this->transform * ortho;
+}
+
+void wf::framebuffer_t::logic_scissor(wlr_box box) const
+{
+    scissor(framebuffer_box_from_geometry_box(box));
 }
 
 #define WF_PI 3.141592f

@@ -377,8 +377,7 @@ void wf::wlr_surface_base_t::_simple_render(const wf::framebuffer_t& fb,
     OpenGL::render_begin(fb);
     for (const auto& rect : damage)
     {
-        auto box = wlr_box_from_pixman_box(rect);
-        fb.scissor(fb.framebuffer_box_from_damage_box(box));
+        fb.logic_scissor(wlr_box_from_pixman_box(rect));
         OpenGL::render_texture(texture, fb, geometry);
     }
     OpenGL::render_end();
