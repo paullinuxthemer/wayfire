@@ -95,8 +95,6 @@ struct framebuffer_t : public framebuffer_base_t
 
     /* The functions below to convert between coordinate systems don't need a
      * bound OpenGL context */
-    /* Get the box after applying the framebuffer scale */
-    wlr_box damage_box_from_geometry_box(wlr_box box) const;
 
     /**
      * Get the geometry of the given box after projecting it onto the framebuffer.
@@ -105,15 +103,6 @@ struct framebuffer_t : public framebuffer_base_t
      * transform.
      */
     wlr_box framebuffer_box_from_geometry_box(wlr_box box) const;
-
-    /* Get the projection of the given box onto the framebuffer.
-     * The given box is in damage coordinates, e.g relative to the output's
-     * framebuffer before rotation */
-    wlr_box framebuffer_box_from_damage_box(wlr_box box) const;
-
-    /* Returns a region in damage coordinate system which corresponds to the
-     * whole area of the framebuffer */
-    wf::region_t get_damage_region() const;
 
     /* Returns a matrix which contains an orthographic projection from "geometry"
      * coordinates to the framebuffer coordinates. */

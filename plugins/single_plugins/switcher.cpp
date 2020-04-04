@@ -588,7 +588,7 @@ class WayfireSwitcher : public wf::plugin_interface_t
 
         transform->color[3] = sv.attribs.alpha;
         sv.view->render_transformed(output->render->get_target_framebuffer(),
-            output->render->get_target_framebuffer().get_damage_region());
+            output->render->get_target_framebuffer().geometry);
 
         transform->translation = glm::mat4();
         transform->scaling = glm::mat4();
@@ -604,14 +604,14 @@ class WayfireSwitcher : public wf::plugin_interface_t
 
         dim_background(background_dim);
         for (auto view : get_background_views())
-            view->render_transformed(fb, fb.get_damage_region());
+            view->render_transformed(fb, fb.geometry);
 
         /* Render in the reverse order because we don't use depth testing */
         for (auto& view : wf::reverse(views))
             render_view(view, fb);
 
         for (auto view : get_overlay_views())
-            view->render_transformed(fb, fb.get_damage_region());
+            view->render_transformed(fb, fb.geometry);
 
         if (!duration.running())
         {

@@ -375,8 +375,22 @@ void wf::framebuffer_base_t::reset()
     viewport_width = viewport_height = 0;
 }
 
-wlr_box wf::framebuffer_t::framebuffer_box_from_damage_box(wlr_box box) const
+wlr_box wf::framebuffer_t::framebuffer_box_from_geometry_box(wlr_box box) const
 {
+    /* Step 1: Make relative to the framebuffer */
+    box.x -= this->geometry.x;
+    box.y -= this->geometry.y;
+
+    /* Step 2: Apply scale to box */
+    wlr_box scaled;
+    scaled.x = std::floor(box.x * scale);
+    scaled.y = std::floor(box.y * scale);
+    /* Scale it the same way that regions are scaled, otherwise
+     * we get numerical issues. */
+    scaled.width = std::ceil((box.x + box.width) * scale) - scaled.x;
+    scaled.height = std::ceil((box.y + box.height) * scale) - scaled.y;
+
+    /* Step 3: rotate */
     if (has_nonstandard_transform)
     {
         // TODO: unimplemented, but also unused for now
@@ -389,40 +403,12 @@ wlr_box wf::framebuffer_t::framebuffer_box_from_damage_box(wlr_box box) const
     if (wl_transform & 1)
         std::swap(width, height);
 
-    wlr_box result = box;
+    wlr_box result;
     wl_output_transform transform =
         wlr_output_transform_invert((wl_output_transform)wl_transform);
 
-   // LOGI("got %d,%d %dx%d, %d", box.x, box.y, box.width, box.height, wl_transform);
-    wlr_box_transform(&result, &box, transform, width, height);
-  //  LOGI("tr %d,%d %dx%d", box.x, box.y, box.width, box.height);
+    wlr_box_transform(&result, &scaled, transform, width, height);
     return result;
-}
-
-wlr_box wf::framebuffer_t::damage_box_from_geometry_box(wlr_box box) const
-{
-    wlr_box result;
-
-    result.x = std::floor(box.x * scale);
-    result.y = std::floor(box.y * scale);
-    /* Scale it the same way that regions are scaled, otherwise
-     * we get numerical issues. */
-    result.width = std::ceil((box.x + box.width) * scale) - result.x;
-    result.height = std::ceil((box.y + box.height) * scale) - result.y;
-
-    return result;
-}
-
-wlr_box wf::framebuffer_t::framebuffer_box_from_geometry_box(wlr_box box) const
-{
-    box.x -= this->geometry.x;
-    box.y -= this->geometry.y;
-    return framebuffer_box_from_damage_box(damage_box_from_geometry_box(box));
-}
-
-wf::region_t wf::framebuffer_t::get_damage_region() const
-{
-    return damage_box_from_geometry_box({0, 0, geometry.width, geometry.height});
 }
 
 glm::mat4 wf::framebuffer_t::get_orthographic_projection() const
