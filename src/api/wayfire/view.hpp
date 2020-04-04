@@ -361,17 +361,10 @@ class view_interface_t : public surface_interface_t, public wf::object_base_t
     bool intersects_region(const wlr_box& region);
 
     /**
-     * Subtract the transformed opaque region of the view and its subsurfaces.
-     *
-     * @param region The region to subtract opaque from.
-     *   It has the output scale applied to it.
-     * @param x The X offset of the region coordinate system relative to the
-     *   output coordinate system.
-     * @param x The X offset of the region coordinate system relative to the
-     *   output coordinate system.
+     * Get the transformed opaque region of the view and its subsurfaces.
+     * The returned region is in output-local coordinates.
      */
-    virtual void subtract_transformed_opaque(
-        wf::region_t& region, int x, int y);
+    virtual wf::region_t get_transformed_opaque_region();
 
     /**
      * Render all the surfaces of the view using the view's transforms.

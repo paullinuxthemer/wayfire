@@ -89,7 +89,7 @@ wlr_box wf::wlr_view_t::get_minimize_hint()
     return this->minimize_hint;
 }
 
-void wf::wlr_view_t::subtract_opaque(wf::region_t& region, int x, int y)
+wf::region_t wf::wlr_view_t::get_transformed_opaque_region()
 {
     auto& maximal_shrink_constraint =
         wf::surface_interface_t::impl::active_shrink_constraint;
@@ -103,8 +103,9 @@ void wf::wlr_view_t::subtract_opaque(wf::region_t& region, int x, int y)
     if (this->fullscreen)
         maximal_shrink_constraint = 0;
 
-    wf::view_interface_t::subtract_opaque(region, x, y);
+    auto region = wf::view_interface_t::get_transformed_opaque_region();
     maximal_shrink_constraint = saved_shrink_constraint;
+    return region;
 }
 
 void wf::wlr_view_t::set_position(int x, int y,

@@ -705,11 +705,8 @@ class wf::render_manager::impl
         {
             ds->pos = -view_delta;
             ds->view = view.get();
-
-            repaint.ws_damage *= output->handle->scale;
-            view->subtract_transformed_opaque(repaint.ws_damage,
-                -view_delta.x, -view_delta.y);
-            repaint.ws_damage *= 1.0 / output->handle->scale;
+            repaint.ws_damage ^=
+                view->get_transformed_opaque_region() + view_delta;
             repaint.to_render.push_back(std::move(ds));
         }
     }
@@ -743,9 +740,7 @@ class wf::render_manager::impl
 
             /* Subtract opaque region from workspace damage. The views below
              * won't be visible, so no need to damage them */
-            repaint.ws_damage *= output->handle->scale;
-            ds->surface->subtract_opaque(repaint.ws_damage, pos.x, pos.y);
-            repaint.ws_damage *= 1.0 / output->handle->scale;
+            repaint.ws_damage ^= ds->surface->get_opaque_region(pos);
             repaint.to_render.push_back(std::move(ds));
         }
     }
@@ -792,7 +787,6 @@ class wf::render_manager::impl
             wf::VISIBLE_LAYERS, false);
 
         schedule_drag_icon(repaint);
-
         for (auto& v : views)
         {
             for (auto& view : v->enumerate_views(false))

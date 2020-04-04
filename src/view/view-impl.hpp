@@ -95,9 +95,7 @@ class wlr_view_t :
     virtual std::string get_title() override final;
     virtual wlr_box get_minimize_hint() override final;
 
-    /* Subtract the opaque region of the surface from region, supposing
-     * the surface is positioned at (x, y) */
-    virtual void subtract_opaque(wf::region_t& region, int x, int y) override final;
+    virtual wf::region_t get_transformed_opaque_region() override;
 
     /* Functions which are further specialized for the different shells */
     virtual void move(int x, int y) override;

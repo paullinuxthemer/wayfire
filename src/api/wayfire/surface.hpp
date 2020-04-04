@@ -125,16 +125,14 @@ class surface_interface_t
     virtual void send_frame_done(const timespec& frame_end);
 
     /**
-     * Subtract the opaque region of the surface from region.
+     * Get the opaque region of the surface relative to the given point.
      *
      * This is just a hint, so surface implementations don't have to implement
      * this function.
      *
-     * @param region The region to subtract from
-     * @param x The x position of the surface in the coordinate system of region
-     * @param y The y position of the surface in the coordinate system of region
+     * @param origin The coordinates of the upper-left corner of the surface.
      */
-    virtual void subtract_opaque(wf::region_t& region, int x, int y);
+    virtual wf::region_t get_opaque_region(wf::point_t origin);
 
     /**
      * Request that the opaque region is shrunk by a certain amount of pixels

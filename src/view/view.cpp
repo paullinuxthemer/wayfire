@@ -806,31 +806,18 @@ bool wf::view_interface_t::intersects_region(const wlr_box& region)
     return false;
 }
 
-void wf::view_interface_t::subtract_transformed_opaque(
-    wf::region_t& region, int x, int y)
+wf::region_t wf::view_interface_t::get_transformed_opaque_region()
 {
     if (!is_mapped())
-        return;
+        return {};
 
-    /*
-     * We want to figure out the union of opaque regions.
-     *
-     * So, we first subtract all opaque regions from the full region, and then
-     * invert it.
-     */
     auto obox = get_untransformed_bounding_box();
     auto og = get_output_geometry();
 
-    float scale = get_output()->handle->scale;
-
-    wf::region_t full = obox;
-    full *= scale;
-    wf::region_t opaque = full;
+    wf::region_t opaque;
     for (auto& surf : enumerate_surfaces({og.x, og.y}))
-        surf.surface->subtract_opaque(opaque, surf.position.x, surf.position.y);
+        opaque |= surf.surface->get_opaque_region(surf.position);
 
-    opaque = full ^ opaque;
-    opaque *= 1.0 / scale;
     auto bbox = obox;
     this->view_impl->transforms.for_each(
         [&] (const std::shared_ptr<view_transform_block_t> tr) {
@@ -838,9 +825,7 @@ void wf::view_interface_t::subtract_transformed_opaque(
             bbox = tr->transform->get_bounding_box(bbox, bbox);
         });
 
-    opaque += -wf::point_t{x, y};
-    priv->scale_opaque_region(opaque, 0);
-    region ^= opaque;
+    return opaque;
 }
 
 bool wf::view_interface_t::render_transformed(const wf::framebuffer_t& framebuffer,
