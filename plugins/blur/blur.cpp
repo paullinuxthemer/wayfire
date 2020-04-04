@@ -48,13 +48,7 @@ class wf_blur_transformer : public wf::view_transformer_t
     void render_with_damage(wf::texture_t src_tex, wlr_box src_box,
         const wf::region_t& damage, const wf::framebuffer_t& target_fb) override
     {
-        wlr_box box = src_box;
-        box.x -= target_fb.geometry.x;
-        box.y -= target_fb.geometry.y;
-
-        box = target_fb.damage_box_from_geometry_box(box);
-        wf::region_t clip_damage = damage & box;
-
+        wf::region_t clip_damage = damage & src_box;
         provider()->pre_render(src_tex, src_box, clip_damage, target_fb);
         wf::view_transformer_t::render_with_damage(src_tex, src_box, clip_damage, target_fb);
     }

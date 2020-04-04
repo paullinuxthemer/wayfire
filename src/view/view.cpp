@@ -892,9 +892,8 @@ bool wf::view_interface_t::render_transformed(const wf::framebuffer_t& framebuff
         OpenGL::render_end();
 
         /* Actually render the transform to the next framebuffer */
-        wf::region_t whole_region{wlr_box{0, 0, scaled_width, scaled_height}};
         transform->transform->render_with_damage(previous_texture, obox,
-            whole_region, transform->fb);
+            wf::region_t{transformed_box}, transform->fb);
 
         previous_transform = transform;
         previous_texture = previous_transform->fb.tex;
@@ -930,11 +929,8 @@ bool wf::view_interface_t::render_transformed(const wf::framebuffer_t& framebuff
     {
         /* Regular case, just call the last transformer, but render directly
          * to the target framebuffer */
-        auto transformed_damage = damage +
-            -wf::point_t{framebuffer.geometry.x, framebuffer.geometry.y};
-        transformed_damage *= framebuffer.scale;
         final_transform->transform->render_with_damage(previous_texture, obox,
-            transformed_damage, framebuffer);
+            damage, framebuffer);
     }
 
     return true;

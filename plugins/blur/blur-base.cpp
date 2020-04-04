@@ -91,7 +91,7 @@ void wf_blur_base::render_iteration(wf::framebuffer_base_t& in,
 wlr_box wf_blur_base::copy_region(wf::framebuffer_base_t& result,
     const wf::framebuffer_t& source, const wf::region_t& region)
 {
-    auto subbox = source.framebuffer_box_from_damage_box(
+    auto subbox = source.framebuffer_box_from_geometry_box(
         wlr_box_from_pixman_box(region.get_extents()));
 
     auto source_box =
@@ -206,7 +206,7 @@ void wf_blur_base::render(wf::texture_t src_tex, wlr_box src_box,
     target_fb.bind();
     GL_CALL(glViewport(view_box.x, fb_geom.height - view_box.y - view_box.height,
             view_box.width, view_box.height));
-    target_fb.scissor(scissor_box);
+    target_fb.logic_scissor(scissor_box);
 
     GL_CALL(glDrawArrays(GL_TRIANGLE_FAN, 0, 4));
 

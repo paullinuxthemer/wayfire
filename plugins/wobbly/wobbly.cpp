@@ -606,7 +606,7 @@ class wf_wobbly : public wf::view_transformer_t
         wlr_box scissor_box, const wf::framebuffer_t& target_fb) override
     {
         OpenGL::render_begin(target_fb);
-        target_fb.scissor(scissor_box);
+        target_fb.logic_scissor(scissor_box);
 
         std::vector<float> vert, uv;
         wobbly_graphics::prepare_geometry(model.get(), src_box, vert, uv);

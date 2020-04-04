@@ -92,7 +92,7 @@ class FireTransformer : public wf::view_transformer_t
         wlr_box scissor_box, const wf::framebuffer_t& target_fb) override
     {
         OpenGL::render_begin(target_fb);
-        target_fb.scissor(scissor_box);
+        target_fb.logic_scissor(scissor_box);
 
         // render view
         float x = src_box.x, y = src_box.y, w = src_box.width, h = src_box.height;

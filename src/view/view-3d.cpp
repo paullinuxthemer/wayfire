@@ -35,11 +35,7 @@ void wf::view_transformer_t::render_with_damage(wf::texture_t src_tex, wlr_box s
             const wf::region_t& damage, const wf::framebuffer_t& target_fb)
 {
     for (const auto& rect : damage)
-    {
-        auto box = target_fb.framebuffer_box_from_damage_box(
-            wlr_box_from_pixman_box(rect));
-        render_box(src_tex, src_box, box, target_fb);
-    }
+        render_box(src_tex, src_box, wlr_box_from_pixman_box(rect), target_fb);
 }
 
 struct transformable_quad
@@ -161,7 +157,7 @@ void wf::view_2D::render_box(wf::texture_t src_tex, wlr_box src_box,
     auto transform = fb.transform * ortho * translate * rotate;
 
     OpenGL::render_begin(fb);
-    fb.scissor(scissor_box);
+    fb.logic_scissor(scissor_box);
     OpenGL::render_transformed_texture(src_tex, quad.geometry, {},
                                        transform, {1.0f, 1.0f, 1.0f, alpha});
     OpenGL::render_end();
@@ -231,7 +227,7 @@ void wf::view_3D::render_box(wf::texture_t src_tex, wlr_box src_box,
     transform = fb.transform * scale * translate * transform;
 
     OpenGL::render_begin(fb);
-    fb.scissor(scissor_box);
+    fb.logic_scissor(scissor_box);
     OpenGL::render_transformed_texture(src_tex, quad.geometry, {},
                                        transform, color);
     OpenGL::render_end();
