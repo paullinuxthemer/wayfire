@@ -909,6 +909,9 @@ class wf::render_manager::impl
                 send_sampled_on_output(ds->surface);
             }
         }
+
+        /* Restore proper geometry */
+        repaint.fb.geometry = fb_geometry;
     }
 
     void workspace_stream_update(workspace_stream_t& stream,
