@@ -211,21 +211,25 @@ class wayfire_blur : public wf::plugin_interface_t
          * that comes from client damage */
         frame_pre_paint = [=] ()
         {
-            int padding = blur_algorithm->calculate_blur_radius();
+            auto damage = output->render->get_scheduled_damage();
+            const auto& fb = output->render->get_target_framebuffer();
+
+            int padding = std::ceil(blur_algorithm->calculate_blur_radius() / fb.scale);
             wf::surface_interface_t::set_opaque_shrink_constraint("blur",
                 padding);
 
-            auto damage = output->render->get_scheduled_damage();
-            const auto& fb = output->render->get_target_framebuffer();
+            wf::region_t padded;
             for (const auto& rect : damage)
             {
-                output->render->damage(wlr_box{
-                        int((rect.x1 - padding) / fb.scale),
-                        int((rect.y1 - padding) / fb.scale),
-                        int(((rect.x2 - rect.x1) + 2 * padding) / fb.scale),
-                        int(((rect.y2 - rect.y1) + 2 * padding) / fb.scale)
-                });
+                padded |= wlr_box{
+                    (rect.x1 - padding),
+                    (rect.y1 - padding),
+                    (rect.x2 - rect.x1) + 2 * padding,
+                    (rect.y2 - rect.y1) + 2 * padding
+                };
             }
+
+            output->render->damage(padded * fb.scale);
         };
         output->render->add_effect(&frame_pre_paint, wf::OUTPUT_EFFECT_PRE);
 
@@ -238,12 +242,14 @@ class wayfire_blur : public wf::plugin_interface_t
         workspace_stream_pre = [=] (wf::signal_data_t *data)
         {
             auto& damage = static_cast<wf::stream_signal_t*>(data)->raw_damage;
+            const auto& ws = static_cast<wf::stream_signal_t*>(data)->ws;
             const auto& target_fb = static_cast<wf::stream_signal_t*>(data)->fb;
 
             /* As long as the padding is big enough to cover the
              * furthest sampled pixel by the shader, there should
              * be no visual artifacts. */
-            int padding = blur_algorithm->calculate_blur_radius();
+            int padding = std::ceil(
+                blur_algorithm->calculate_blur_radius() / target_fb.scale);
 
             wf::region_t expanded_damage;
             for (const auto& rect : damage)
@@ -257,9 +263,15 @@ class wayfire_blur : public wf::plugin_interface_t
             }
 
             /* Keep rects on screen */
-            expanded_damage &= output->render->get_damage_box();
+            expanded_damage &= output->render->get_ws_box(ws);
 
-            /* Compute padded region and store result in padded_region. */
+            /* Compute padded region and store result in padded_region.
+             * We need to be careful, because core needs to scale the damage
+             * back and forth for wlroots. */
+            expanded_damage *= target_fb.scale;
+            expanded_damage *= (1.0 / target_fb.scale);
+            damage *= target_fb.scale;
+            damage *= (1.0 / target_fb.scale);
             padded_region = expanded_damage ^ damage;
 
             OpenGL::render_begin(target_fb);
@@ -277,7 +289,7 @@ class wayfire_blur : public wf::plugin_interface_t
             for (const auto& rect : padded_region)
             {
                 pixman_box32_t box = pixman_box_from_wlr_box(
-                    target_fb.framebuffer_box_from_damage_box(
+                    target_fb.framebuffer_box_from_geometry_box(
                         wlr_box_from_pixman_box(rect)));
 
                 GL_CALL(glBlitFramebuffer(
@@ -313,7 +325,7 @@ class wayfire_blur : public wf::plugin_interface_t
             for (const auto& rect : padded_region)
             {
                 pixman_box32_t box = pixman_box_from_wlr_box(
-                    target_fb.framebuffer_box_from_damage_box(
+                    target_fb.framebuffer_box_from_geometry_box(
                         wlr_box_from_pixman_box(rect)));
 
                 GL_CALL(glBlitFramebuffer(box.x1, box.y1, box.x2, box.y2,

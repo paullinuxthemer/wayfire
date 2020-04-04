@@ -165,12 +165,6 @@ class render_manager : public wf::signal_provider_t
     void damage(const wf::region_t& region);
 
     /**
-     * @return A box in output-local coordinates containing the visible part
-     * of the output.
-     */
-    wlr_box get_damage_box() const;
-
-    /**
      * @return A box in output-local coordinates containing the given
      * workspace of the output (returned value depends on current workspace).
      */

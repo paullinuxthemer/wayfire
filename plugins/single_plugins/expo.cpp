@@ -465,7 +465,7 @@ class wayfire_expo : public wf::plugin_interface_t
 
         OpenGL::render_begin(fb);
         OpenGL::clear(background_color);
-        fb.scissor(fb.framebuffer_box_from_geometry_box(fb.geometry));
+        fb.logic_scissor(fb.geometry);
 
         /* Space between adjacent workspaces */
         float hspacing = 1.0 * animation.delimiter_offset / screen_size.width;

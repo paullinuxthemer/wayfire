@@ -81,7 +81,7 @@ struct output_damage_t
 
         frame_damage |= tmp_region;
         if (runtime_config.no_damage_track)
-            frame_damage |= get_damage_box();
+            frame_damage |= get_wlr_damage_box();
 
         return true;
     }
@@ -92,7 +92,7 @@ struct output_damage_t
      */
     wf::region_t get_scheduled_damage()
     {
-        return frame_damage;
+        return frame_damage * (1.0 / wo->handle->scale);
     }
 
     /**
@@ -134,9 +134,10 @@ struct output_damage_t
     }
 
     /**
-     * Return the extents of the visible region for the output.
+     * Return the extents of the visible region for the output in the wlroots
+     * damage coordinate system.
      */
-    wlr_box get_damage_box() const
+    wlr_box get_wlr_damage_box() const
     {
         int w, h;
         wlr_output_transformed_resolution(output, &w, &h);
@@ -150,7 +151,7 @@ struct output_damage_t
     {
         auto current = wo->workspace->get_current_workspace();
 
-        wlr_box box = get_damage_box();
+        wlr_box box = wo->get_relative_geometry();
         box.x = (ws.x - current.x) * box.width;
         box.y = (ws.y - current.y) * box.height;
 
@@ -163,8 +164,8 @@ struct output_damage_t
      */
     wf::region_t get_ws_damage(wf::point_t ws)
     {
-        auto ws_box = get_ws_box(ws);
-        return (frame_damage & ws_box) * (1.0 / wo->handle->scale);
+        auto scaled = frame_damage * (1.0 / wo->handle->scale);
+        return scaled & get_ws_box(ws);
     }
 
     /**
@@ -337,8 +338,6 @@ class wf::render_manager::impl
         : output(o)
     {
         output_damage = std::make_unique<output_damage_t> (o);
-        output_damage->damage(output_damage->get_damage_box());
-
         effects = std::make_unique<effect_hook_manager_t> ();
         postprocessing = std::make_unique<postprocessing_manager_t>(o);
 
@@ -479,7 +478,7 @@ class wf::render_manager::impl
         {
             /* Clear the screen to yellow, so that the repainted parts are
              * visible */
-            swap_damage |= output_damage->get_damage_box();
+            swap_damage |= output_damage->get_wlr_damage_box();
 
             OpenGL::render_begin(output->handle->width, output->handle->height, 0);
             OpenGL::clear({1, 1, 0, 1});
@@ -520,11 +519,12 @@ class wf::render_manager::impl
         {
             renderer(get_target_framebuffer());
             /* TODO: let custom renderers specify what they want to repaint... */
-            swap_damage |= output_damage->get_damage_box();
+            swap_damage |= output_damage->get_wlr_damage_box();
         } else
         {
-            swap_damage = output_damage->get_scheduled_damage();
-            swap_damage &= output_damage->get_damage_box();
+            swap_damage =
+                output_damage->get_scheduled_damage() * output->handle->scale;
+            swap_damage &= output_damage->get_wlr_damage_box();
             default_renderer();
         }
     }
@@ -569,7 +569,7 @@ class wf::render_manager::impl
         effects->run_effects(OUTPUT_EFFECT_OVERLAY);
 
         if (postprocessing->post_effects.size())
-            swap_damage |= output_damage->get_damage_box();
+            swap_damage |= output_damage->get_wlr_damage_box();
 
         OpenGL::render_begin(get_target_framebuffer());
         wlr_output_render_software_cursors(output->handle, swap_damage.to_pixman());
@@ -927,14 +927,8 @@ class wf::render_manager::impl
             return;
 
         {
-            auto scaled_damage = (repaint.ws_damage + -wf::point_t{repaint.ws_dx, repaint.ws_dy});
-            scaled_damage *= output->handle->scale;
-
-            stream_signal_t data(stream.ws, scaled_damage, repaint.fb);
+            stream_signal_t data(stream.ws, repaint.ws_damage, repaint.fb);
             output->render->emit_signal("workspace-stream-pre", &data);
-
-            repaint.ws_damage = scaled_damage * (1.0 / output->handle->scale);
-            repaint.ws_damage += wf::point_t{repaint.ws_dx, repaint.ws_dy};
         }
 
         check_schedule_surfaces(repaint, stream);
@@ -950,10 +944,7 @@ class wf::render_manager::impl
 
         unschedule_drag_icon();
         {
-            auto scaled_damage = (repaint.ws_damage + -wf::point_t{repaint.ws_dx, repaint.ws_dy});
-            scaled_damage *= output->handle->scale;
-
-            stream_signal_t data(stream.ws, scaled_damage, repaint.fb);
+            stream_signal_t data(stream.ws, repaint.ws_damage, repaint.fb);
             output->render->emit_signal("workspace-stream-post", &data);
         }
     }
@@ -981,7 +972,6 @@ void render_manager::damage_whole() { pimpl->output_damage->damage_whole(); }
 void render_manager::damage_whole_idle() { pimpl->output_damage->damage_whole_idle(); }
 void render_manager::damage(const wlr_box& box) { pimpl->output_damage->damage(box); }
 void render_manager::damage(const wf::region_t& region) { pimpl->output_damage->damage(region); }
-wlr_box render_manager::get_damage_box() const { return pimpl->output_damage->get_damage_box(); }
 wlr_box render_manager::get_ws_box(wf::point_t ws) const { return pimpl->output_damage->get_ws_box(ws); }
 wf::framebuffer_t render_manager::get_target_framebuffer() const { return pimpl->get_target_framebuffer(); }
 void render_manager::workspace_stream_start(workspace_stream_t& stream) { pimpl->workspace_stream_start(stream); }

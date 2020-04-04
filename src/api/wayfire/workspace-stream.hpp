@@ -34,9 +34,11 @@ struct stream_signal_t : public wf::signal_data_t
     stream_signal_t(wf::point_t _ws, wf::region_t& damage, const wf::framebuffer_t& _fb)
         : ws(_ws), raw_damage(damage), fb(_fb) { }
 
-    /* Raw damage, can be adjusted by the signal handlers. */
+    /** The coordinates of the workspace this workspace stream is for. */
     wf::point_t ws;
+    /** The damage on the stream, in output-local coordinates */
     wf::region_t& raw_damage;
+    /** The framebuffer of the stream, fb has output-local geometry. */
     const wf::framebuffer_t& fb;
 };
 }

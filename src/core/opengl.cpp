@@ -401,12 +401,16 @@ wlr_box wf::framebuffer_t::framebuffer_box_from_damage_box(wlr_box box) const
 
 wlr_box wf::framebuffer_t::damage_box_from_geometry_box(wlr_box box) const
 {
-    box.x = std::floor(box.x * scale);
-    box.y = std::floor(box.y * scale);
-    box.width = std::ceil(box.width * scale);
-    box.height = std::ceil(box.height * scale);
+    wlr_box result;
 
-    return box;
+    result.x = std::floor(box.x * scale);
+    result.y = std::floor(box.y * scale);
+    /* Scale it the same way that regions are scaled, otherwise
+     * we get numerical issues. */
+    result.width = std::ceil((box.x + box.width) * scale) - result.x;
+    result.height = std::ceil((box.y + box.height) * scale) - result.y;
+
+    return result;
 }
 
 wlr_box wf::framebuffer_t::framebuffer_box_from_geometry_box(wlr_box box) const
