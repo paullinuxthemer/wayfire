@@ -94,8 +94,8 @@ wlr_box wf_blur_base::copy_region(wf::framebuffer_base_t& result,
     auto subbox = source.framebuffer_box_from_damage_box(
         wlr_box_from_pixman_box(region.get_extents()));
 
-    auto source_box = source.framebuffer_box_from_geometry_box({
-        0, 0, source.geometry.width, source.geometry.height});
+    auto source_box =
+        source.framebuffer_box_from_geometry_box(source.geometry);
 
     /* Scaling down might cause issues like flickering or some discrepancies
      * between the source and final image.
@@ -152,8 +152,7 @@ void wf_blur_base::pre_render(wf::texture_t src_tex, wlr_box src_box,
 
     /* we subtract target_fb's position to so that
      * view box is relative to framebuffer */
-    auto view_box = target_fb.framebuffer_box_from_geometry_box(
-        src_box + wf::point_t{-target_fb.geometry.x, -target_fb.geometry.y});
+    auto view_box = target_fb.framebuffer_box_from_geometry_box(src_box);
 
     OpenGL::render_begin();
     fb[1].allocate(view_box.width, view_box.height);
@@ -181,8 +180,6 @@ void wf_blur_base::render(wf::texture_t src_tex, wlr_box src_box,
 {
     wlr_box fb_geom = target_fb.framebuffer_box_from_geometry_box(target_fb.geometry);
     auto view_box = target_fb.framebuffer_box_from_geometry_box(src_box);
-    view_box.x -= fb_geom.x;
-    view_box.y -= fb_geom.y;
 
     OpenGL::render_begin(target_fb);
     blend_program.use(src_tex.type);

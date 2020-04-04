@@ -98,9 +98,12 @@ struct framebuffer_t : public framebuffer_base_t
     /* Get the box after applying the framebuffer scale */
     wlr_box damage_box_from_geometry_box(wlr_box box) const;
 
-    /* Get the projection of the given box onto the framebuffer.
-     * The given box is in output-local coordinates, i.e the same coordinate
-     * space as views */
+    /**
+     * Get the geometry of the given box after projecting it onto the framebuffer.
+     *
+     * The resulting geometry is affected by the framebuffer geometry, scale and
+     * transform.
+     */
     wlr_box framebuffer_box_from_geometry_box(wlr_box box) const;
 
     /* Get the projection of the given box onto the framebuffer.

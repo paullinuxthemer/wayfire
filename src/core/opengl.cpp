@@ -414,6 +414,8 @@ wlr_box wf::framebuffer_t::damage_box_from_geometry_box(wlr_box box) const
 
 wlr_box wf::framebuffer_t::framebuffer_box_from_geometry_box(wlr_box box) const
 {
+    box.x -= this->geometry.x;
+    box.y -= this->geometry.y;
     return framebuffer_box_from_damage_box(damage_box_from_geometry_box(box));
 }
 

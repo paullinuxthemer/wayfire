@@ -985,9 +985,6 @@ void wf::view_interface_t::take_snapshot()
         offscreen_buffer.cached_damage |= buffer_geometry;
     }
 
-    offscreen_buffer.cached_damage +=
-        -wf::point_t{buffer_geometry.x, buffer_geometry.y};
-
     OpenGL::render_begin();
     offscreen_buffer.allocate(scaled_width, scaled_height);
     offscreen_buffer.scale = scale;
@@ -1001,6 +998,9 @@ void wf::view_interface_t::take_snapshot()
     }
 
     OpenGL::render_end();
+
+    offscreen_buffer.cached_damage +=
+        -wf::point_t{buffer_geometry.x, buffer_geometry.y};
 
     wf::region_t damage_region;
     for (auto& rect : offscreen_buffer.cached_damage)
