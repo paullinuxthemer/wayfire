@@ -128,72 +128,72 @@ using output_removed_signal = _output_signal;
 
 namespace wf
 {
-    class input_device_t;
-    /* Used in the tablet-mode and lid-state signals from core */
-    struct switch_signal : public wf::signal_data_t
+class input_device_t;
+/* Used in the tablet-mode and lid-state signals from core */
+struct switch_signal : public wf::signal_data_t
     {
         nonstd::observer_ptr<input_device_t> device;
         bool state;
     };
 
-    /* in input-device-added and input-device-removed signals from core */
-    struct input_device_signal : public signal_data_t
+/* in input-device-added and input-device-removed signals from core */
+struct input_device_signal : public signal_data_t
     {
         nonstd::observer_ptr<input_device_t> device;
     };
 
-    /**
-     * Used for the following events:
-     *
-     * pointer_motion, pointer_motion_abs, pointer_button, pointer_axis,
-     * pointer_swipe_begin, pointer_swipe_update, pointer_swipe_end,
-     * pointer_pinch_begin, pointer_pinch_update, pointer_pinch_end,
-     *
-     * keyboard_key,
-     *
-     * touch_down, touch_up, touch_motion,
-     *
-     * tablet_proximity, tablet_axis, tablet_button, tablet_tip
-     *
-     * The template parameter is the corresponding type of wlr events.
-     *
-     * The input event signals are sent from core whenever a new input from an
-     * input device arrives. The events are sent before any processing is done,
-     * and they are independent of plugin input grabs and other wayfire input
-     * mechanisms.
-     *
-     * The event data can be modified by plugins, and then the modified event
-     * will be used instead. However plugins which modify the event must ensure
-     * that subsequent events are adjusted accordingly as well.
-     */
-    template<class wlr_event_t>
+/**
+ * Used for the following events:
+ *
+ * pointer_motion, pointer_motion_abs, pointer_button, pointer_axis,
+ * pointer_swipe_begin, pointer_swipe_update, pointer_swipe_end,
+ * pointer_pinch_begin, pointer_pinch_update, pointer_pinch_end,
+ *
+ * keyboard_key,
+ *
+ * touch_down, touch_up, touch_motion,
+ *
+ * tablet_proximity, tablet_axis, tablet_button, tablet_tip
+ *
+ * The template parameter is the corresponding type of wlr events.
+ *
+ * The input event signals are sent from core whenever a new input from an
+ * input device arrives. The events are sent before any processing is done,
+ * and they are independent of plugin input grabs and other wayfire input
+ * mechanisms.
+ *
+ * The event data can be modified by plugins, and then the modified event
+ * will be used instead. However plugins which modify the event must ensure
+ * that subsequent events are adjusted accordingly as well.
+ */
+template<class wlr_event_t>
     struct input_event_signal : public wf::signal_data_t
-    {
-        /* The event as it has arrived from wlroots */
-        wlr_event_t *event;
-    };
+{
+    /* The event as it has arrived from wlroots */
+    wlr_event_t *event;
+};
 
-    /**
-     * decoration-state-updated signal is emitted when the value of
-     * view::should_be_decorated() changes.
-     *
-     * decoration-state-updated-view is emitted on the output of the view.
-     */
-    using decoration_state_updated_signal = _view_signal;
+/**
+ * decoration-state-updated signal is emitted when the value of
+ * view::should_be_decorated() changes.
+ *
+ * decoration-state-updated-view is emitted on the output of the view.
+ */
+using decoration_state_updated_signal = _view_signal;
 
-    /**
-     * view-move-to-output signal is emitted by core just before a view is moved
-     * from one output to another.
-     */
-    struct view_move_to_output_signal : public signal_data_t
-    {
-        /* The view being moved */
-        wayfire_view view;
-        /* The output the view was on */
-        wf::output_t *old_output;
-        /* The output the view is being moved to. */
-        wf::output_t *new_output;
-    };
+/**
+ * view-move-to-output signal is emitted by core just before a view is moved
+ * from one output to another.
+ */
+struct view_move_to_output_signal : public signal_data_t
+{
+    /* The view being moved */
+    wayfire_view view;
+    /* The output the view was on */
+    wf::output_t *old_output;
+    /* The output the view is being moved to. */
+    wf::output_t *new_output;
+};
 }
 
 #endif
