@@ -257,7 +257,7 @@ class wayfire_blur : public wf::plugin_interface_t
                 };
             }
 
-            output->render->damage(padded * fb.scale);
+            output->render->damage(padded);
         };
         output->render->add_effect(&frame_pre_paint, wf::OUTPUT_EFFECT_PRE);
 
