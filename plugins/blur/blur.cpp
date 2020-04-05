@@ -48,6 +48,20 @@ class wf_blur_transformer : public wf::view_transformer_t
 
     uint32_t get_z_order() override { return wf::TRANSFORMER_BLUR; }
 
+    /* Render without blending */
+    void direct_render(wf::texture_t src_tex, wlr_box src_box,
+        const wf::region_t& damage, const wf::framebuffer_t& target_fb)
+    {
+        OpenGL::render_begin(target_fb);
+        for (auto& rect : damage)
+        {
+            target_fb.logic_scissor(wlr_box_from_pixman_box(rect));
+            OpenGL::render_texture(src_tex, target_fb, src_box);
+        }
+
+        OpenGL::render_end();
+    }
+
     void render_with_damage(wf::texture_t src_tex, wlr_box src_box,
         const wf::region_t& damage, const wf::framebuffer_t& target_fb) override
     {
@@ -71,20 +85,18 @@ class wf_blur_transformer : public wf::view_transformer_t
         if ((bbox_region ^ full_opaque).empty())
         {
             /* In case the whole surface is opaque, we can simply skip blurring */
-            OpenGL::render_begin(target_fb);
-            for (auto& rect : damage)
-            {
-                target_fb.logic_scissor(wlr_box_from_pixman_box(rect));
-                OpenGL::render_texture(src_tex, target_fb, src_box);
-            }
-
-            OpenGL::render_end();
+            direct_render(src_tex, src_box, damage, target_fb);
             return;
         }
 
         wf::region_t opaque_region = view->get_transformed_opaque_region();
-        provider()->pre_render(src_tex, src_box, clip_damage ^ opaque_region, target_fb);
-        wf::view_transformer_t::render_with_damage(src_tex, src_box, clip_damage, target_fb);
+        wf::region_t blurred_region = clip_damage ^ opaque_region;
+
+        provider()->pre_render(src_tex, src_box, blurred_region, target_fb);
+        wf::view_transformer_t::render_with_damage(src_tex, src_box, blurred_region, target_fb);
+
+        /* Opaque non-blurred regions can be rendered directly without blending */
+        direct_render(src_tex, src_box, opaque_region & clip_damage, target_fb);
     }
 
     void render_box(wf::texture_t src_tex, wlr_box src_box, wlr_box scissor_box,
