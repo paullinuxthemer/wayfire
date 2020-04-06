@@ -16,6 +16,7 @@ namespace wf
  */
 class view_matcher_t : public noncopyable_t
 {
+  public:
     /**
      * Create a new matcher from the given option.
      *
@@ -24,6 +25,15 @@ class view_matcher_t : public noncopyable_t
      * @param option The option where the condition is encoded.
      */
     view_matcher_t(std::shared_ptr<wf::config::option_t<std::string>> option);
+
+    /**
+     * Create a new matcher from the given option name.
+     * The option will be loaded from core.
+     *
+     * @throws a std::runtime_error if the option is not found, or if the option
+     *   is not a string.
+     */
+    view_matcher_t(const std::string& option_name);
 
     /**
      * Set the condition option after initialization.

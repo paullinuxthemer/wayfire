@@ -1,6 +1,7 @@
 #include <wayfire/matcher.hpp>
 #include <wayfire/util/log.hpp>
 #include <wayfire/lexer/lexer.hpp>
+#include <wayfire/option-wrapper.hpp>
 #include <wayfire/condition/condition.hpp>
 #include <wayfire/view-access-interface.hpp>
 #include <wayfire/parser/condition_parser.hpp>
@@ -63,6 +64,12 @@ wf::view_matcher_t::view_matcher_t(
 {
     this->priv = std::make_unique<impl>();
     this->priv->set_option(option);
+}
+
+wf::view_matcher_t::view_matcher_t(const std::string& option_name)
+{
+    wf::option_wrapper_t<std::string> option{option_name};
+    view_matcher_t((wf::option_sptr_t<std::string>)option);
 }
 
 void wf::view_matcher_t::set_from_option(
