@@ -128,19 +128,52 @@ using output_removed_signal = _output_signal;
 
 namespace wf
 {
+/**
+ * output-configuration-changed is a signal emitted on an output whenever the
+ * output's source, mode, scale or transform changes.
+ */
+enum output_config_field_t
+{
+    /** Output source changed */
+    OUTPUT_SOURCE_CHANGE    = (1 << 0),
+    /** Output mode changed */
+    OUTPUT_MODE_CHANGE      = (1 << 1),
+    /** Output scale changed */
+    OUTPUT_SCALE_CHANGE     = (1 << 2),
+    /** Output transform changed */
+    OUTPUT_TRANSFORM_CHANGE = (1 << 3),
+};
+
+struct output_state_t;
+struct output_configuration_changed_signal : public _output_signal
+{
+    output_configuration_changed_signal(const wf::output_state_t& st)
+        : state(st) { }
+    /**
+     * Which output attributes actually changed.
+     * A bitwise OR of output_config_field_t.
+     */
+    uint32_t changed_fields;
+
+    /**
+     * The new state of the output.
+     */
+    const wf::output_state_t& state;
+};
+
 class input_device_t;
 /* Used in the tablet-mode and lid-state signals from core */
 struct switch_signal : public wf::signal_data_t
-    {
-        nonstd::observer_ptr<input_device_t> device;
-        bool state;
-    };
+{
+    nonstd::observer_ptr<input_device_t> device;
+    bool state;
+};
 
 /* in input-device-added and input-device-removed signals from core */
 struct input_device_signal : public signal_data_t
-    {
-        nonstd::observer_ptr<input_device_t> device;
-    };
+{
+    nonstd::observer_ptr<input_device_t> device;
+};
 
 /**
  * Used for the following events:

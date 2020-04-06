@@ -730,6 +730,20 @@ namespace wf
             if (!test_state(state))
                 return;
 
+            uint32_t changed_fields = 0;
+            if (this->current_state.source != state.source)
+                changed_fields |= wf::OUTPUT_SOURCE_CHANGE;
+            if (this->current_state.mode.width != state.mode.width ||
+                this->current_state.mode.height != state.mode.height ||
+                this->current_state.mode.refresh != state.mode.refresh)
+            {
+                changed_fields |= wf::OUTPUT_MODE_CHANGE;
+            }
+            if (this->current_state.scale != state.scale)
+                changed_fields |= wf::OUTPUT_SCALE_CHANGE;
+            if (this->current_state.transform != state.transform)
+                changed_fields |= wf::OUTPUT_TRANSFORM_CHANGE;
+
             this->current_state = state;
 
             /* Even if output will remain mirrored, we can tear it down and set
@@ -763,7 +777,12 @@ namespace wf
 
                 output->render->damage_whole();
                 if (!wlr_output_is_noop(handle))
-                    output->emit_signal("output-configuration-changed", nullptr);
+                {
+                    wf::output_configuration_changed_signal data{state};
+                    data.output = output.get();
+                    data.changed_fields = changed_fields;
+                    output->emit_signal("output-configuration-changed", &data);
+                }
             }
             else /* state.source == OUTPUT_IMAGE_SOURCE_MIRROR */
             {
