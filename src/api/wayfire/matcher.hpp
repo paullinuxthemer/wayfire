@@ -49,6 +49,8 @@ class view_matcher_t : public noncopyable_t
     ~view_matcher_t();
 
   private:
+    view_matcher_t();
+
     class impl;
     std::unique_ptr<impl> priv;
 };

@@ -15,18 +15,28 @@ class wf::view_matcher_t::impl
     wf::condition_parser_t parser;
     std::shared_ptr<wf::condition_t> condition;
 
-    wf::config::option_base_t::updated_callback_t update_condition = [=] ()
+    bool try_parse(const std::string& value, const std::string& opt_name)
     {
-        lexer.reset(option->get_value());
-
+        lexer.reset(value);
         try {
             condition = parser.parse(lexer);
+            return true;
         } catch (std::runtime_error& error)
         {
-            LOGE("Failed to parse condition ", option->get_value(),
-                " from option ", option->get_name());
+            LOGE("Failed to parse condition ", value, " from option ", opt_name);
             LOGE("Reason for the failure: ", error.what());
-            condition = nullptr;
+            condition.reset();
+        }
+
+        return false;
+    }
+
+    wf::config::option_base_t::updated_callback_t update_condition = [=] ()
+    {
+        if (!try_parse(option->get_value(), option->get_name()))
+        {
+            try_parse(option->get_default_value(),
+                option->get_name() + "(default)");
         }
     };
 
@@ -59,17 +69,23 @@ class wf::view_matcher_t::impl
     }
 };
 
-wf::view_matcher_t::view_matcher_t(
-    std::shared_ptr<wf::config::option_t<std::string>> option)
+wf::view_matcher_t::view_matcher_t()
 {
     this->priv = std::make_unique<impl>();
+}
+
+wf::view_matcher_t::view_matcher_t(
+    std::shared_ptr<wf::config::option_t<std::string>> option)
+    : view_matcher_t()
+{
     this->priv->set_option(option);
 }
 
 wf::view_matcher_t::view_matcher_t(const std::string& option_name)
+    : view_matcher_t()
 {
     wf::option_wrapper_t<std::string> option{option_name};
-    view_matcher_t((wf::option_sptr_t<std::string>)option);
+    this->set_from_option(option);
 }
 
 void wf::view_matcher_t::set_from_option(
