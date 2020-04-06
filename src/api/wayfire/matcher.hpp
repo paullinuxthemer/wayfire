@@ -1,0 +1,45 @@
+#pragma once
+
+#include <wayfire/nonstd/noncopyable.hpp>
+#include <wayfire/config/option.hpp>
+#include <wayfire/view.hpp>
+
+namespace wf
+{
+
+/**
+ * view_matcher_t provides a way to match certain views based on conditions.
+ * The conditions are represented as string options.
+ *
+ * For information about the syntax or the possible conditions, see
+ * wf::view_condition_interface_t and wf::condition_parser_t.
+ */
+class view_matcher_t : public noncopyable_t
+{
+    /**
+     * Create a new matcher from the given option.
+     *
+     * Whenever the option value changes, the condition will be updated.
+     *
+     * @param option The option where the condition is encoded.
+     */
+    view_matcher_t(std::shared_ptr<wf::config::option_t<std::string>> option);
+
+    /**
+     * Set the condition option after initialization.
+     */
+    void set_from_option(std::shared_ptr<wf::config::option_t<std::string>> option);
+
+    /**
+     * @return True if the view matches the condition specified, false otherwise.
+     */
+    bool matches(wayfire_view view);
+
+    /** Destructor */
+    ~view_matcher_t();
+
+  private:
+    class impl;
+    std::unique_ptr<impl> priv;
+};
+}
